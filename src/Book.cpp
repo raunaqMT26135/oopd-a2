@@ -25,6 +25,19 @@ Book::Book(std::string id, std::string title, std::vector<std::string> authors,
     if (edition_ < 1) throw std::invalid_argument("edition must be >= 1");
 }
 
+// Q5: Hardcover books cost 20% more. Q6: 10% off buying >= 10 copies.
+// The hardcover surcharge is applied first, then the bulk discount.
+Money Book::costFor(int quantity) const {
+    requirePositive(quantity);
+    Money base = unitPrice() * quantity;
+    if (binding_ == Binding::Hardcover) {
+        // Q5: +20% surcharge for hardcover.
+        base = Money::fromMinor(base.minorUnits() * 120 / 100);
+    }
+    // Q6: 10% bulk discount for >= 10 copies.
+    return applyPrintBulkDiscount(base, quantity);
+}
+
 void Book::printDetails(std::ostream& os) const {
     os << "  authors: " << joinAuthors(authors_) << "\n"
        << "  isbn: " << isbn_ << "\n"

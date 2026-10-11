@@ -13,6 +13,12 @@ add_library(bookmgmt
     src/Budget.cpp
     src/Catalog.cpp
     src/Acquisition.cpp
+    src/Journal.cpp        # Q1
+    src/EBook.cpp          # Q2
+    src/AudioBook.cpp      # Q3
+    src/Thesis.cpp         # Q3
+    src/Magazine.cpp       # Q4
+    src/TaxPolicy.cpp      # Q7
 )
 target_include_directories(bookmgmt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

@@ -39,6 +39,15 @@ public:
     int holdings(const std::string& id) const;
     void addHoldings(const std::string& id, int units);
 
+    // Q18: Lending
+    int borrowed(const std::string& id) const;
+    void borrowResource(const std::string& id); // throws invalid_argument if no copies available
+    void returnResource(const std::string& id); // throws invalid_argument if none borrowed
+
+    // Q17: Save/Load
+    void save(const std::string& filename) const;
+    void load(const std::string& filename);
+
     // Queries. Results are in id order and point into the catalog.
     std::vector<const Resource*> all() const;
     std::vector<const Resource*> byCategory(ResourceCategory c) const;
@@ -46,10 +55,19 @@ public:
     std::vector<const Resource*> where(
         const std::function<bool(const Resource&)>& pred) const;
 
+    // Q16: Additional search methods.
+    // Search by author name (case-insensitive substring, works for Book/EBook/AudioBook).
+    std::vector<const Resource*> searchByAuthor(const std::string& name) const;
+    // Search by ISBN or ISSN (exact match).
+    std::vector<const Resource*> searchByIsbn(const std::string& isbn) const;
+    // Search by publication year range [fromYear, toYear] inclusive.
+    std::vector<const Resource*> searchByYearRange(int fromYear, int toYear) const;
+
 private:
     struct Entry {
         std::unique_ptr<Resource> resource;
         int holdings = 0;
+        int borrowed = 0; // Q18
     };
     std::map<std::string, Entry> items_;
 };

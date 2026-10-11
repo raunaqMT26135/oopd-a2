@@ -1,5 +1,6 @@
 #include "bookmgmt/ElectronicResource.h"
 
+#include <algorithm>
 #include <ostream>
 #include <stdexcept>
 
@@ -25,9 +26,14 @@ ElectronicResource::ElectronicResource(std::string id, std::string title,
         throw std::invalid_argument("platform fee must not be negative");
 }
 
+// Q6: Seats beyond the 50th cost half price.
+// costFor(seats) = platformFee + fullPrice * min(seats,50) + halfPrice * max(seats-50, 0)
 Money ElectronicResource::costFor(int seats) const {
     requirePositive(seats);
-    return platformFee_ + unitPrice() * seats;
+    Money fullPriceSeats = unitPrice() * std::min(seats, 50);
+    Money halfPriceSeats = Money::fromMinor(unitPrice().minorUnits() / 2) *
+                           std::max(seats - 50, 0);
+    return platformFee_ + fullPriceSeats + halfPriceSeats;
 }
 
 void ElectronicResource::printDetails(std::ostream& os) const {

@@ -22,6 +22,9 @@ public:
 
     ResourceCategory category() const override { return ResourceCategory::Book; }
 
+    // Q5: Hardcover books cost 20% more than their listed unit price.
+    Money costFor(int quantity) const override;
+
 protected:
     void printDetails(std::ostream& os) const override;
 

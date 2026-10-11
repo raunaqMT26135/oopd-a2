@@ -1,70 +1,121 @@
-// Demo: builds a small catalog, sets a budget with per-category quotas,
-// and runs a batch of purchase requests through the acquisition manager.
+// Demo: comprehensive showcase of all BookManagement features (Q1-Q19)
 
 #include <iostream>
+#include <iomanip>
 
 #include "bookmgmt/bookmgmt.h"
 
 using namespace bookmgmt;
 
 int main() {
+    std::cout << "========================================\n"
+              << "       BOOK MANAGEMENT DEMO\n"
+              << "========================================\n\n";
+
     Catalog catalog;
 
+    // 1. Core items (Book, ElectronicResource) + Q5 (Hardcover surcharge)
     catalog.emplace<Book>("B001", "Clean Code", std::vector<std::string>{"Robert C. Martin"},
                           "978-0132350884", "Prentice Hall", 2008, Money::of(450));
     catalog.emplace<Book>("B002", "The C++ Programming Language",
                           std::vector<std::string>{"Bjarne Stroustrup"}, "978-0321563842",
-                          "Addison-Wesley", 2013, Money::of(1200), 4, Binding::Hardcover);
+                          "Addison-Wesley", 2013, Money::of(1200), 4, Binding::Hardcover); // 20% surcharge
+    
+    // Q6 bulk discount test for E-Resource
     catalog.emplace<ElectronicResource>("R001", "IEEE Xplore Digital Library", "IEEE", 2026,
                                         Money::of(150), "https://ieeexplore.example",
                                         LicenseModel::AnnualSubscription, Money::of(2000));
-    catalog.emplace<ElectronicResource>("R002", "MATLAB Campus Licence", "MathWorks", 2026,
-                                        Money::of(400), "https://licensing.example/matlab",
-                                        LicenseModel::Perpetual);
+    
+    // Q1: Journal
+    catalog.emplace<Journal>("J001", "Communications of the ACM", "0001-0782",
+                             "ACM", 2024, Money::of(500), 12, 1);
+                             
+    // Q2: EBook
+    catalog.emplace<EBook>("E001", "Effective Modern C++",
+                           std::vector<std::string>{"Scott Meyers"}, "978-1491903995",
+                           "O'Reilly", 2014, Money::of(30), "https://oreilly.com/ebook",
+                           EBookFormat::EPUB, true);
 
-    std::cout << "=== Catalog ===\n";
+    // Q3: AudioBook & Thesis
+    catalog.emplace<AudioBook>("AB01", "The Pragmatic Programmer",
+                               std::vector<std::string>{"David Thomas", "Andrew Hunt"},
+                               "Anna Narrator", 500, "Addison-Wesley", 2019, Money::of(25));
+    catalog.emplace<Thesis>("T001", "High Performance C++ Containers", "Alice Student",
+                            "Bob Professor", "Tech University", "PhD", "Tech University", 2023);
+
+    // Q4: Magazine
+    catalog.emplace<Magazine>("M001", "Wired", "1059-1028", "Condé Nast", 2024,
+                              Money::of(100), 12, Money::of(5), 1);
+
+    std::cout << "=== Catalog (Various Resource Types) ===\n";
     for (const Resource* r : catalog.all()) std::cout << r->summary() << "\n";
+    
+    std::cout << "\n=== Details of specific items ===\n";
+    std::cout << catalog.get("J001") << "\n";
+    std::cout << catalog.get("E001") << "\n";
 
-    std::cout << "\n=== Details of R001 ===\n" << catalog.get("R001");
+    // Q16: Extended Search
+    std::cout << "\n=== Extended Search ===\n";
+    std::cout << "Search author 'Martin':\n";
+    for (auto* r : catalog.searchByAuthor("Martin")) std::cout << "  - " << r->title() << "\n";
+    std::cout << "Search Year Range 2020-2025:\n";
+    for (auto* r : catalog.searchByYearRange(2020, 2025)) std::cout << "  - " << r->title() << "\n";
 
-    Budget budget(Money::of(20000));
-    budget.setQuota(ResourceCategory::Book, {10, Money::of(8000)});
-    budget.setQuota(ResourceCategory::ElectronicResource, {40, Money::of(12000)});
+    // Q7: Tax Policy Setup
+    TaxPolicy tax;
+    tax.setRate(ResourceCategory::Book, {500}); // 5% tax on books
+    tax.setRate(ResourceCategory::ElectronicResource, {1800}); // 18% tax on generic E-resources
+    tax.setRate(ResourceCategory::EBook, {1200}); // 12% tax on EBooks
 
-    AcquisitionManager acq(catalog, budget);
+    // Budget Setup with Title Quotas (Q8)
+    Budget budget(Money::of(30000));
+    budget.setQuota(ResourceCategory::Book, {20, Money::of(10000), std::optional<int>(2)});
+    budget.setQuota(ResourceCategory::ElectronicResource, {60, Money::of(12000)});
+    budget.setQuota(ResourceCategory::Journal, {10, Money::of(5000)});
+    budget.setQuota(ResourceCategory::EBook, {5, Money::of(1000)});
 
-    std::cout << "\n=== Quotes ===\n";
-    std::cout << "5 copies of B002  = " << acq.quote("B002", 5) << "\n";
-    std::cout << "20 seats of R001  = " << acq.quote("R001", 20) << "  (incl. platform fee)\n";
+    AcquisitionManager acq(catalog, budget, &tax);
 
-    acq.processBatch({
-        {"B001", 4},   // 1800  ok
-        {"B002", 5},   // 6000  ok  -> book spend 7800
-        {"B001", 1},   // 450   rejected: book spend quota (200 left)
-        {"R001", 20},  // 5000  ok
-        {"R002", 25},  // 10000 rejected: e-resource unit quota (20 seats left)
-        {"R002", 15},  // 6000  ok  -> e-resource spend 11000
-        {"R002", 5},   // 2000  rejected: e-resource spend quota (1000 left)
-        {"X999", 1},   // rejected: unknown id
-    });
+    // Purchase Requests using batch mode
+    std::cout << "\n=== Q14: Processing Batch (Priority Order) ===\n";
+    // Using Q14 priority: Higher priority processed first
+    auto results = acq.processBatch({
+        {"B001", 10, 0},   // priority 0 (lowest)
+        {"B002", 5, 10},   // priority 10 (highest)
+        {"J001", 3, 5},    // priority 5
+        {"E001", 5, 8},    // priority 8
+        {"B001", 5, 2},    // another order for B001
+        {"T001", 1, 0}     // Thesis is free
+    }, false, true);       // allOrNothing=false, sortByPriority=true
 
-    std::cout << "\n=== Acquisition report ===\n";
+    // Q12 Quota Warnings might have been printed to stderr
+
+    std::cout << "\n=== Acquisition Report ===\n";
     acq.printReport(std::cout);
 
-    std::cout << "\n=== Budget ===\n";
+    std::cout << "\n=== Budget after purchases ===\n";
+    budget.print(std::cout);
+
+    // Q9: Cancel an order
+    std::cout << "\n=== Q9: Cancelling an order ===\n";
+    int orderToCancel = results[0].orderNo; // the B002 order (processed first)
+    acq.cancelOrder(orderToCancel);
+    std::cout << "Order #" << orderToCancel << " cancelled. Budget refunded.\n";
+    budget.print(std::cout);
+
+    // Q11: Year-End Rollover
+    std::cout << "\n=== Q11: Year-End Rollover ===\n";
+    std::cout << "Rolling over 50% of remaining funds...\n";
+    budget.yearEndRollover(50);
     budget.print(std::cout);
 
     std::cout << "\n=== Holdings ===\n";
-    for (const Resource* r : catalog.all())
-        std::cout << "  " << r->id() << ": " << catalog.holdings(r->id())
-                  << (r->isDigital() ? " seats" : " copies") << "\n";
-
-    // Direct purchase: errors are reported with exceptions
-    std::cout << "\n=== Direct purchase that breaks a quota ===\n";
-    try {
-        acq.purchase("B002", 1);
-    } catch (const QuotaExceededError& e) {
-        std::cout << "QuotaExceededError: " << e.what() << "\n";
+    for (const Resource* r : catalog.all()) {
+        int holds = catalog.holdings(r->id());
+        if (holds > 0)
+            std::cout << "  " << std::setw(6) << r->id() << ": " << holds
+                      << (r->isDigital() ? " seats" : " copies") << "\n";
     }
+
     return 0;
 }

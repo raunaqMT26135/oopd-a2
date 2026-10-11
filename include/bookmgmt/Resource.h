@@ -6,6 +6,7 @@
 //   └── ElectronicResource
 
 #include <iosfwd>
+#include <map>
 #include <string>
 
 #include "bookmgmt/Money.h"
@@ -15,7 +16,8 @@ namespace bookmgmt {
 // EXTENSION POINT: when adding a new resource type, add a category here,
 // a matching name in categoryName() (Resource.cpp) and an entry in
 // kAllCategories (Budget.cpp).
-enum class ResourceCategory { Book, ElectronicResource };
+// Q1: Journal, Q2: EBook, Q3: AudioBook/Thesis, Q4: Magazine added.
+enum class ResourceCategory { Book, ElectronicResource, Journal, EBook, AudioBook, Thesis, Magazine };
 
 const char* categoryName(ResourceCategory c);
 
@@ -39,6 +41,11 @@ public:
     virtual ResourceCategory category() const = 0;
     virtual bool isDigital() const { return false; }
 
+    // Q15: Vendors
+    void addVendor(const std::string& vendorName, Money price);
+    const std::map<std::string, Money>& vendors() const { return vendors_; }
+    std::string cheapestVendor() const;
+
     // Total cost of acquiring `quantity` units of this resource.
     // "Unit" means copies for print items and user seats for electronic
     // licences. Default: unitPrice * quantity. Throws if quantity <= 0.
@@ -55,12 +62,17 @@ protected:
     virtual void printDetails(std::ostream& os) const;
     static void requirePositive(int quantity);
 
+    // Q6: Apply 10% bulk discount for print items buying >= 10 copies.
+    // Pass in the undiscounted total; returns the discounted total.
+    static Money applyPrintBulkDiscount(Money total, int quantity);
+
 private:
     std::string id_;
     std::string title_;
     std::string publisher_;
     int year_;
     Money unitPrice_;
+    std::map<std::string, Money> vendors_;  // Q15
 };
 
 std::ostream& operator<<(std::ostream& os, const Resource& r);
