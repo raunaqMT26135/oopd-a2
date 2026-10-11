@@ -24,9 +24,9 @@ namespace bookmgmt {
 // Q14: Priority — higher number = processed first.
 struct PurchaseRequest {
     std::string resourceId;
-    int quantity;
-    int priority = 0;
-    std::string department; // Q10
+    int quantity  = 0;
+    int priority  = 0;
+    std::string department = {};  // Q10
 };
 
 struct PurchaseRecord {

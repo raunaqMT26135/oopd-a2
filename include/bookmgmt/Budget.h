@@ -19,9 +19,9 @@
 namespace bookmgmt {
 
 struct Quota {
-    int maxUnits;              // maximum copies/seats that may be bought
-    Money maxSpend;            // maximum money that may be spent
-    std::optional<int> maxTitles;  // Q8: max distinct titles (nullopt = unlimited)
+    int maxUnits = 0;                       // maximum copies/seats that may be bought
+    Money maxSpend = {};                    // maximum money that may be spent
+    std::optional<int> maxTitles = {};      // Q8: max distinct titles (nullopt = unlimited)
 };
 
 struct Usage {
