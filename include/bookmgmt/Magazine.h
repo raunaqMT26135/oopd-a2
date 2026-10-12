@@ -1,3 +1,4 @@
+// MT26135 - Raunaq Soneja
 #pragma once
 // Q4: Magazine — derived from Journal.
 // Cost also includes postage for each issue over the subscription period.

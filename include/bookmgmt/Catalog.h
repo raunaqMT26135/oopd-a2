@@ -1,3 +1,4 @@
+// MT26135 - Raunaq Soneja
 #pragma once
 // Catalog: owns every Resource, keyed by its id, and tracks copies/seats held.
 

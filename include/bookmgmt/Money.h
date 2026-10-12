@@ -1,3 +1,4 @@
+// MT26135 - Raunaq Soneja
 #pragma once
 // Money: fixed-point currency amount stored in minor units (e.g. paise/cents).
 // Q19: Add a currency code. Adding amounts in different currencies throws exception.

@@ -1,3 +1,4 @@
+// MT26135 - Raunaq Soneja
 #pragma once
 // AcquisitionManager: turns purchase requests into orders, enforcing the
 // Budget's quotas, updating Catalog holdings and keeping an order history.

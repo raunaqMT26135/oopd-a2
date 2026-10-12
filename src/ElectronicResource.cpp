@@ -1,3 +1,4 @@
+// MT26135 - Raunaq Soneja
 #include "bookmgmt/ElectronicResource.h"
 
 #include <algorithm>

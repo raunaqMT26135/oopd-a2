@@ -1,3 +1,4 @@
+// MT26135 - Raunaq Soneja
 #pragma once
 // Exception hierarchy. Catch LibraryError to handle any library-specific failure.
 
